@@ -1,5 +1,4 @@
 import sequence_tools
-import pickle
 import NGS_tools
 from sys import argv
 
