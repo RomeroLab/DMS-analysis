@@ -5,18 +5,23 @@ from sys import argv
 
 ### input files and options ##########################################
 
+
 samfile = argv[1] # the sam file to be converted to mutations
 reffile = '1GNXpet22_SgrAI_DraIII.fasta' # the sequence used as a reference in the Bowtie2 run
 outfile = samfile.split('/')[-1].replace('.sam','_mutations.txt')
 
 
-start = 150 # the start and stop indices for the coding region.  Slicing reference[start:stop] should start on start codon and end on stop codon
+# The start and stop indices for the coding region.  Slicing reference[start:stop] should start on start codon and end on stop codon.  
+# This range could be expanded to include 5/3' UTRs, but need to keep everything in frame 
+start = 150 
 stop = 1656
 
-Qcut = 30 # Quality score cutoff (QS >= Qcut is considered good)
+# Quality score cutoff (QS >= Qcut is considered good)
+Qcut = 30 
 
-CDN_muts = False # return codon mutations (rather than AA mutations)
-WT_reads = False # return reads that contain no mutations (necessary for counting WT to get frequencies) 
+# Return codon mutations (rather than AA mutations)
+CDN_muts = False 
+
 
 
 
@@ -36,6 +41,8 @@ code.update(degcode)
 
 output = ''
 samfile = open(samfile)
+read_count_pos = [0]*len(WTcodons) 
+mut_count_pos = [0]*len(WTcodons) 
 sc = 0
 lc = 0
 while True:
@@ -72,6 +79,9 @@ while True:
     matches = [i for i in range(len(codons)) if codons[i]==WTcodons[i]]
     if len(matches)==0: continue # nothing to do here
 
+    # store positions where the read was observed (i.e. between match beginning/end) 
+    for i in range(matches[0],matches[-1]+1):
+        read_count_pos[i] += 1
 
     # loop over all coding positions and find mutations
     mutations = []
@@ -84,20 +94,31 @@ while True:
                     mut = codons[i]
                     if WT != mut:
                         mutations.append(WT+str(i)+mut)
+                        mut_count_pos[i] += 1
 
                 else: # store AA mutations 
                     WT = code[WTcodons[i]]
                     mut = code[codons[i]]
                     if WT != mut:
                         mutations.append(WT+str(i)+mut)
-
-    if not WT_reads:
-        if len(mutations)==0: continue
+                        mut_count_pos[i] += 1    
 
     mutations = ','.join(mutations)
-    output += '%i; %i; %s\n' % (matches[0],matches[-1],mutations)
-    lc += 1 # add one to line count 
+    if len(mutations)>0:
+        output += '%s\n' % mutations
+        lc += 1 # add one to line count             
+
 
 open(outfile,'w').write(output)
 
-print('Analyzed %i reads and wrote %i reads to file: %s' % (sc,lc,outfile))
+
+# generate read counts file that contains WT sequence, read counts, and mutation counts per position 
+output = ''
+for i in range(len(WTcodons)):
+    output += '%i, %s, %i, %i\n' % (i,code[WTcodons[i]],read_count_pos[i],mut_count_pos[i])
+
+open(outfile.replace('mutations','read_counts'),'w').write(output)
+
+
+
+print('Analyzed %i reads and wrote %i mutated reads to file: %s' % (sc,lc,outfile))
