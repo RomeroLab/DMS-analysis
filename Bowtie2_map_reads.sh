@@ -1,14 +1,43 @@
 #!/bin/bash
 
 # set paths
-data="/home/promero/illumina_data/PAR4/PAR4B/"
 bt2="/home/promero/code/bowtie2-2.1.0/"
+# find .fasta reference file, and generate list of fastq files
 
+data=$(pwd)
+runs=( )
+for file in "$data/fastq"/*
+do
+	a="$file"
+	xpath=${a%/*} 
+	xbase=${a##*/}
+	xfext=${xbase##*.}
+	xpref=${xbase%.*}
+	
+	if [ "${xfext}" == "fastq" ]; then
+        	runs+=(${xpref%????????????})
+    fi    	
+    
+    if [ "${xfext}" == "fasta" ]; then
+        reference_fasta=${a}
+        
+    fi
+        	
+	echo;echo path=${xpath};echo pref=${xpref};echo ext=${xfext}	
+done
+echo "These are the fastq files you\'ll be aligning:"
+echo ${runs[*]}
+echo
+echo "You\'re reference fasta is:"
+echo $reference_fasta
 
+read -r -p "Gucci? [y/N] " response
+response=${response,,}    # tolower
+if [[ "$response" =~ ^(yes|y|yerp|yeah)$ ]]; then
 # prepare the six index files required by bowtie
-"$bt2"bowtie2-build "$data"1GNXpet22_SgrAI_DraIII.fasta "$data"index_file
-clear 
 
+"$bt2"bowtie2-build "$data"reference_fasta "$data"index_file
+clear 
 
 #BOWTIE2 options:
   #alignment types:
@@ -27,18 +56,16 @@ clear
 
   #--fr/--rf/--ff: relative orientation of reads (inward, outward, and same direction), default is inward
 
+> alignment_output.txt # make empty log file
 
-runs="Lib8v1_S1
-Lib8v2_S2
-Lib8v3_S3
-Lib8pre_S4"
-
-> alignment_output.txt
-
-for r in $runs
+for r in $runs #align all fastq files in runs to reference fasta
 do
     echo "$bt2"bowtie2 --very-sensitive-local --maxins 2000 --dovetail --no-discordant --no-unal --no-hd -p 7 -x "$data"index_file -1 "$data""$r"_L001_R1_001.fastq -2 "$data""$r"_L001_R2_001.fastq -S "$data""$r".sam 1>> alignment_output.txt
     time "$bt2"bowtie2 --very-sensitive-local --maxins 2000 --dovetail --no-discordant --no-unal --no-hd -p 7 -x "$data"index_file -1 "$data""$r"_L001_R1_001.fastq -2 "$data""$r"_L001_R2_001.fastq -S "$data""$r".sam 2>> alignment_output.txt
     echo >> alignment_output.txt
 done
-
+# move the newly created samfiles and log file to a new directory
+mkdir sam_files
+mv *.sam sam_files
+mv alignment_output.txt sam_files
+cp $reference_fasta sam_files
