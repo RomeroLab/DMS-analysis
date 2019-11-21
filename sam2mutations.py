@@ -122,7 +122,6 @@ def sam_to_mutations(samfile):
     
     #### generate pickle files with the old RE style data
     
-    pkl_outfile = samfile.split('/')[-1].replace('.sam','.pkl')
     codons = [i for i in enumerate(codons) if i[1] in code and (i[0]>=matches[0] and i[0]<=matches[-1])] # use codons that code for a specific amino acid and are within the valid range
     for i in codons:
         CDN_count[i[0]][i[1]]+=1
