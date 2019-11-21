@@ -20,6 +20,7 @@ coding = range(start,stop)
 ### load sequences and genetic code #################################
 reference = sequence_tools.read_fasta(ref_fasta)[1][0]
 reference = reference.upper()
+aa_reference = sequence_tools.translate(reference[start:stop])
 WTcodons = sequence_tools.split_codons(reference[start:stop])
 
 AAs = tuple(set(sequence_tools.code.values()))
@@ -131,6 +132,28 @@ def sam_to_mutations(samfile):
 
 for samfile in samfiles:
     sam_to_mutations(samfile)
+    
+#####
+mut_files = []
+for file in os.listdir():
+    if file.endswith('_mutations.txt'):
+        mut_files.append(os.path.join("", file))
+
+def mut_to_seq(mut_files, aa_reference = aa_reference):
+    for f in mut_files:
+        outfile = open(f.replace('mutations','sequences'),'w')
+        variants = [m.split(',') for m in open(f).read().strip().split('\n') if 'WTcount' not in m]
+    
+        for mut in variants:
+            mutant_seq = aa_reference
+            for m in mut:
+                pos = int(m[1:-1])
+                AA = m[-1]
+                mutant_seq = mutant_seq[:pos]+AA+mutant_seq[pos+1:]
+            outfile.write(mutant_seq+'\n')
+#####
+mut_to_seq(mut_files)
+    
     
     
     
