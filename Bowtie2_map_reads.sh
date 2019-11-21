@@ -79,7 +79,7 @@ if [[ "$response" =~ ^(yes|y|yerp|yeah)$ ]]; then
   
   # move the newly created samfiles and log file to a new directory
   mkdir sam_files
-  mv *.sam sam_files
+  mv *.sam ../sam_files
   mv alignment_output.txt sam_files
   cp $reference_fasta sam_files
 
