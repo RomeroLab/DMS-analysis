@@ -58,7 +58,6 @@ if [[ "$response" =~ ^(yes|y|yerp|yeah)$ ]]; then
     # --end-to-end: requires ends of reads to match (default) - I like end-to-end because it is more stringent
     # --local: will trim off the ends of a read if it helps the alignment                                                                                                              
 
-
     # standard options:
     #--no-unal: don't write sequences that failed to align                                                       
     #--no-hd: don't have a SAM header                                                                                                                         
@@ -67,22 +66,22 @@ if [[ "$response" =~ ^(yes|y|yerp|yeah)$ ]]; then
     #--dovetail: allow dovetails
     #--no-discordant: don't look for discordant alignments (instead just map reads individually)
 
-
     #--fr/--rf/--ff: relative orientation of reads (inward, outward, and same direction), default is inward
 
   > alignment_output.txt # make empty log file
 
-  for r in $runs #align all fastq files in runs to reference fasta
-    do
+  for r in ${runs[@]} #align all fastq files in runs to reference fasta
+  do
         echo "$bt2"bowtie2 --very-sensitive-local --maxins 2000 --dovetail --no-discordant --no-unal --no-hd -p 16 -x "$data/fastq/"index_file -1 "$data/fastq/""$r"_L001_R1_001.fastq -2 "$data/fastq/""$r"_L001_R2_001.fastq -S "$data/fastq/""$r".sam 1>> alignment_output.txt
         time "$bt2"bowtie2 --very-sensitive-local --maxins 2000 --dovetail --no-discordant --no-unal --no-hd -p 16 -x "$data/fastq/"index_file -1 "$data/fastq/""$r"_L001_R1_001.fastq -2 "$data/fastq/""$r"_L001_R2_001.fastq -S "$data/fastq/""$r".sam 2>> alignment_output.txt
         echo >> alignment_output.txt
-    done
-    # move the newly created samfiles and log file to a new directory
-    mkdir sam_files
-    mv *.sam sam_files
-    mv alignment_output.txt sam_files
-    cp $reference_fasta sam_files
+  done
+  
+  # move the newly created samfiles and log file to a new directory
+  mkdir sam_files
+  mv *.sam sam_files
+  mv alignment_output.txt sam_files
+  cp $reference_fasta sam_files
 
 else
   echo 'fuckin figure it out: Make sure your fastq files are unique and you only have one reference fasta in this directory.'
