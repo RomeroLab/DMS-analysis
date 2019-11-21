@@ -19,6 +19,7 @@ coding = range(start,stop)
 
 ### load sequences and genetic code #################################
 reference = sequence_tools.read_fasta(ref_fasta)[1][0]
+reference = reference.upper()
 WTcodons = sequence_tools.split_codons(reference[start:stop])
 
 AAs = tuple(set(sequence_tools.code.values()))
