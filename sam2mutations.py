@@ -128,10 +128,6 @@ def sam_to_mutations(samfile):
         CDN_count[i[0]][i[1]]+=1
         AA_count[i[0]][code[i[1]]]+=1
     pickle.dump((CDN_count,AA_count,pair_count),open(pkl_outfile,'wb'))
-##### loop over all sam files in directory #####
-
-for samfile in samfiles:
-    sam_to_mutations(samfile)
     
 #####
 mut_files = []
@@ -151,10 +147,13 @@ def mut_to_seq(mut_files, aa_reference = aa_reference):
                 AA = m[-1]
                 mutant_seq = mutant_seq[:pos]+AA+mutant_seq[pos+1:]
             outfile.write(mutant_seq+'\n')
-#####
+##### loop over all sam files in directory #####
+
+for samfile in samfiles:
+    sam_to_mutations(samfile)
+
 mut_to_seq(mut_files)
-    
-    
+
     
     
     
