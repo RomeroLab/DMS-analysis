@@ -1,2 +1,6 @@
 
 This repo represents the processing and analysis of deep mutational scanning data collected from Caspase-3 and Caspase-7.
+
+FASTQ sequence files are first aligned to reference fasta file using bowtie2, run with map_reads.sh
+Resultant SAM files are then parsed to count mutations in each contig with count_mutations.py
+Resultant list of mutations is fed into Positive-Unlabeled Learning framework and coefficients extracted. Downstream analysis can be found in submission_notebook.ipynb
